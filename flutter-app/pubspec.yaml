@@ -1,0 +1,67 @@
+name: lao_knowledge_hub
+description: Lao Knowledge Hub - Digital Publication Platform for Laos
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  provider: ^6.1.1
+
+  # HTTP & API
+  http: ^1.1.0
+  dio: ^5.4.0
+
+  # Supabase
+  supabase_flutter: ^2.0.0
+
+  # PDF Reader
+  syncfusion_flutter_pdfviewer: ^24.1.41
+
+  # Local Storage
+  shared_preferences: ^2.2.2
+  path_provider: ^2.1.1
+
+  # Navigation
+  go_router: ^12.1.1
+
+  # UI Components
+  cached_network_image: ^3.3.0
+  flutter_svg: ^2.0.9
+  google_fonts: ^6.1.0
+
+  # Utilities
+  intl: ^0.18.1
+  url_launcher: ^6.2.1
+  image_picker: ^1.0.5
+  file_picker: ^6.1.1
+
+  # Icons
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+
+  # Assets
+  # assets:
+  #   - assets/images/
+  #   - assets/fonts/
+
+  # Fonts
+  # fonts:
+  #   - family: Phetsarath OT
+  #     fonts:
+  #       - asset: assets/fonts/Phetsarath_OT.ttf
+  #       - asset: assets/fonts/Phetsarath_OT_Bold.ttf
+  #         weight: 700
