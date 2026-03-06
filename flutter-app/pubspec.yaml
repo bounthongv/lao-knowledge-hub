@@ -39,7 +39,7 @@ dependencies:
   intl: ^0.18.1
   url_launcher: ^6.2.1
   image_picker: ^1.0.5
-  file_picker: ^6.1.1
+  file_picker: ^7.0.0+3
 
   # Icons
   cupertino_icons: ^1.0.6

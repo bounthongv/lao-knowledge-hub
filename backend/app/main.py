@@ -1,80 +1,114 @@
-import time
-
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from supabase import create_client, Client
+from dotenv import load_dotenv
+import os
 
-from app.config import settings
-from app.routes import annotations, auth, books, payments, progress
+load_dotenv()
 
-# Create FastAPI app
 app = FastAPI(
-    title=settings.app_name,
-    description="API for Lao Knowledge Hub - Digital Publication Platform for Laos",
-    version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    title="Lao Knowledge Hub API",
+    description="Backend API for Lao Knowledge Hub digital publication platform",
+    version="1.0.0"
 )
 
-# CORS Middleware - allows requests from Flutter web and Next.js
-# Note: allow_credentials must be False if using wildcard '*' in origins
-cors_origins = settings.cors_origins_list
-allow_credentials = True
-if "*" in cors_origins:
-    allow_credentials = False
-
+# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=cors_origins,
-    allow_credentials=allow_credentials,
+    allow_origins=["*"],  # In production, restrict to specific origins
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include API routers
-app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
-app.include_router(books.router, prefix="/api/v1/books", tags=["Books"])
-app.include_router(payments.router, prefix="/api/v1/payments", tags=["Payments"])
-app.include_router(annotations.router, prefix="/api/v1", tags=["Annotations"])
-app.include_router(
-    progress.router, prefix="/api/v1/progress", tags=["Reading Progress"]
-)
+# Initialize Supabase
+supabase_url = os.getenv("SUPABASE_URL")
+supabase_key = os.getenv("SUPABASE_ANON_KEY")
+supabase: Client = create_client(supabase_url, supabase_key)
 
-
-# Health check endpoint
 @app.get("/health")
-def health_check():
-    """Check API health status"""
-    return {
-        "status": "healthy",
-        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-        "version": "1.0.0",
-    }
+async def health_check():
+    return {"status": "healthy", "message": "Lao Knowledge Hub API is running"}
 
+# Specific routes MUST come before parameterized routes
+@app.get("/api/v1/books/popular")
+async def get_popular_books(limit: int = 10):
+    """Get most popular books"""
+    try:
+        response = supabase.table("books").select("""
+            *,
+            profiles:author_id (id, full_name)
+        """).order("view_count", desc=True).limit(limit).execute()
 
-# Root endpoint
-@app.get("/")
-def root():
-    """Welcome message"""
-    return {
-        "message": "Welcome to Lao Knowledge Hub API",
-        "docs": "/docs",
-        "health": "/health",
-        "github": "https://github.com/your-org/lao-knowledge-hub",
-    }
+        return {"books": response.data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/v1/books/recommended")
+async def get_recommended_books(limit: int = 10):
+    """Get recommended books"""
+    try:
+        response = supabase.table("books").select("""
+            *,
+            profiles:author_id (id, full_name)
+        """).eq("is_featured", True).limit(limit).execute()
 
-# Startup event
-@app.on_event("startup")
-async def startup_event():
-    """Run on application startup"""
-    print(f"🚀 Starting {settings.app_name}...")
-    print(f"📚 API Documentation: http://localhost:8000/docs")
-    print(f"❤️  Health Check: http://localhost:8000/health")
-    print(f"🔗 Supabase URL: {settings.supabase_url}")
+        return {"books": response.data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/api/v1/books")
+async def get_books(limit: int = 20, offset: int = 0):
+    """Get all books with pagination"""
+    try:
+        response = supabase.table("books").select("""
+            *,
+            profiles:author_id (id, full_name)
+        """).range(offset, offset + limit - 1).execute()
 
-# Shutdown event
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Run on application shutdown"""
-    print("👋 Shutting down...")
+        return {
+            "books": response.data,
+            "total": len(response.data),
+            "limit": limit,
+            "offset": offset
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/books/{book_id}")
+async def get_book(book_id: str):
+    """Get a single book by ID"""
+    try:
+        response = supabase.table("books").select("""
+            *,
+            profiles:author_id (id, full_name)
+        """).eq("id", book_id).single().execute()
+
+        if not response.data:
+            raise HTTPException(status_code=404, detail="Book not found")
+
+        return {"book": response.data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/categories")
+async def get_categories():
+    """Get all categories"""
+    try:
+        response = supabase.table("categories").select("*").execute()
+        return {"categories": response.data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/universities")
+async def get_universities():
+    """Get all universities"""
+    try:
+        response = supabase.table("universities").select("*").execute()
+        return {"universities": response.data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
