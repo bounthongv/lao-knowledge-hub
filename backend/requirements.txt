@@ -5,7 +5,7 @@ python-multipart==0.0.6
 
 # Supabase
 supabase==2.3.4
-postgrest==0.15.2
+postgrest==0.15.1
 gotrue==2.4.1
 
 # Security
