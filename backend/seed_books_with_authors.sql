@@ -1,9 +1,19 @@
--- Sample Books Data for Lao Knowledge Hub
--- Run this in Supabase SQL Editor to add test data
+-- Sample Data for Lao Knowledge Hub
+-- Run this in Supabase SQL Editor
+-- Authors are now independent (don't need user accounts)
 
--- First, create sample author profiles (using generated UUIDs for testing)
--- In production, these would be created via the authentication system
+-- Step 1: Create sample authors
+INSERT INTO authors (full_name, full_name_la, biography, biography_la, email) VALUES
+('Dr. Somchai Vongphachan', 'ດຣ. ສົມໄຊ ວົງພະຈັນ', 'Professor of Computer Science at NUOL', 'ສາດສະດາຈານ ຄອມພິວເຕີ ມະຫາວິທະຍາໄລແຫ່ງຊາດລາວ', 'somchai.v@nuol.edu.la'),
+('Dr. Vilay Phonephakdy', 'ດຣ. ວິໄລ ໂພນະພັກດີ', 'Expert in Lao Language and Literature', 'ຜູ້ຊ່ຽວຊານ ພາສາ ແລະ ວັນນະຄະດີລາວ', 'vilay.p@nuol.edu.la'),
+('Prof. Bounmy Sisavath', 'ຜສ. ບຸນມີ ສີສະວາດ', 'Economics and Business Administration', 'ເສດຖະສາດ ແລະ ບໍລິຫານທຸລະກິດ', 'bounmy.s@nuol.edu.la'),
+('Dr. Khamsing Keomanivong', 'ດຣ. ຄຳສິງ ແກ້ວມະນີວົງ', 'Engineering and Technology', 'ວິສະວະກຳ ແລະ ເຕັກໂນໂລຊີ', 'khamsing.k@nuol.edu.la'),
+('Prof. Phetdavanh Souvannalath', 'ຜສ. ເພັດດາວັນ ສຸວັນນະລາດ', 'Social Sciences Research', 'ການວິໄຈວິທະຍາສາດສັງຄົມ', 'phetdavanh.s@nuol.edu.la'),
+('Dr. Sysavath Intharath', 'ດຣ. ສີສະວາດ ອິນທະຣາດ', 'Mathematics and Statistics', 'ຄະນິດສາດ ແລະ ສະຖິຕິ', 'sysavath.i@nuol.edu.la'),
+('Prof. Latsamy Phonevilay', 'ຜສ. ລັດສະໝີ ໂພນະວິໄລ', 'Agriculture and Environmental Science', 'ກະສິກຳ ແລະ ວິທະຍາສາດສິ່ງແວດລ້ອມ', 'latsamy.p@nuol.edu.la'),
+('Dr. Anousone Tampasack', 'ດຣ. ອານຸສອນ ຕຳປາສັກ', 'Law and Political Science', 'ນິຕິສາດ ແລະ ລັດຖະສາດ', 'anousone.t@nuol.edu.la');
 
+-- Step 2: Get author IDs for use in books
 DO $$
 DECLARE
     author1_id uuid;
@@ -15,48 +25,17 @@ DECLARE
     author7_id uuid;
     author8_id uuid;
 BEGIN
-    -- Create sample author profiles
-    INSERT INTO profiles (id, full_name, email, role)
-    VALUES 
-        (gen_random_uuid(), 'Dr. Somchai Vongphachan', 'somchai.v@nuol.edu.la', 'professor')
-    RETURNING id INTO author1_id;
+    -- Get author IDs by email
+    SELECT id INTO author1_id FROM authors WHERE email = 'somchai.v@nuol.edu.la';
+    SELECT id INTO author2_id FROM authors WHERE email = 'vilay.p@nuol.edu.la';
+    SELECT id INTO author3_id FROM authors WHERE email = 'bounmy.s@nuol.edu.la';
+    SELECT id INTO author4_id FROM authors WHERE email = 'khamsing.k@nuol.edu.la';
+    SELECT id INTO author5_id FROM authors WHERE email = 'phetdavanh.s@nuol.edu.la';
+    SELECT id INTO author6_id FROM authors WHERE email = 'sysavath.i@nuol.edu.la';
+    SELECT id INTO author7_id FROM authors WHERE email = 'latsamy.p@nuol.edu.la';
+    SELECT id INTO author8_id FROM authors WHERE email = 'anousone.t@nuol.edu.la';
     
-    INSERT INTO profiles (id, full_name, email, role)
-    VALUES 
-        (gen_random_uuid(), 'Dr. Vilay Phonephakdy', 'vilay.p@nuol.edu.la', 'professor')
-    RETURNING id INTO author2_id;
-    
-    INSERT INTO profiles (id, full_name, email, role)
-    VALUES 
-        (gen_random_uuid(), 'Prof. Bounmy Sisavath', 'bounmy.s@nuol.edu.la', 'professor')
-    RETURNING id INTO author3_id;
-    
-    INSERT INTO profiles (id, full_name, email, role)
-    VALUES 
-        (gen_random_uuid(), 'Dr. Khamsing Keomanivong', 'khamsing.k@nuol.edu.la', 'professor')
-    RETURNING id INTO author4_id;
-    
-    INSERT INTO profiles (id, full_name, email, role)
-    VALUES 
-        (gen_random_uuid(), 'Prof. Phetdavanh Souvannalath', 'phetdavanh.s@nuol.edu.la', 'professor')
-    RETURNING id INTO author5_id;
-    
-    INSERT INTO profiles (id, full_name, email, role)
-    VALUES 
-        (gen_random_uuid(), 'Dr. Sysavath Intharath', 'sysavath.i@nuol.edu.la', 'professor')
-    RETURNING id INTO author6_id;
-    
-    INSERT INTO profiles (id, full_name, email, role)
-    VALUES 
-        (gen_random_uuid(), 'Prof. Latsamy Phonevilay', 'latsamy.p@nuol.edu.la', 'professor')
-    RETURNING id INTO author7_id;
-    
-    INSERT INTO profiles (id, full_name, email, role)
-    VALUES 
-        (gen_random_uuid(), 'Dr. Anousone Tampasack', 'anousone.t@nuol.edu.la', 'professor')
-    RETURNING id INTO author8_id;
-    
-    -- Now insert sample books
+    -- Step 3: Insert sample books
     INSERT INTO books (
         title_la, title_en, description_la, description_en, author_id, 
         price_lak, rental_price_lak, page_count, isbn, status, 
@@ -174,29 +153,14 @@ BEGIN
         70.00, 10, 120
     );
     
-    RAISE NOTICE 'Sample data inserted successfully!';
+    RAISE NOTICE 'Sample data inserted: 8 authors and 10 books created successfully!';
 END $$;
 
 -- Verify the data
 SELECT 
-    'Universities' as table_name, 
+    'Authors' as table_name, 
     count(*) as record_count 
-FROM universities
-UNION ALL
-SELECT 
-    'Faculties', 
-    count(*) 
-FROM faculties
-UNION ALL
-SELECT 
-    'Categories', 
-    count(*) 
-FROM categories
-UNION ALL
-SELECT 
-    'Profiles', 
-    count(*) 
-FROM profiles
+FROM authors
 UNION ALL
 SELECT 
     'Books', 

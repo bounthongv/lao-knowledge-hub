@@ -37,7 +37,7 @@ async def get_popular_books(limit: int = 10):
     try:
         response = supabase.table("books").select("""
             *,
-            profiles:author_id (id, full_name)
+            authors (id, full_name, full_name_la)
         """).order("view_count", desc=True).limit(limit).execute()
 
         return {"books": response.data}
@@ -50,7 +50,7 @@ async def get_recommended_books(limit: int = 10):
     try:
         response = supabase.table("books").select("""
             *,
-            profiles:author_id (id, full_name)
+            authors (id, full_name, full_name_la)
         """).eq("is_featured", True).limit(limit).execute()
 
         return {"books": response.data}
@@ -63,7 +63,7 @@ async def get_books(limit: int = 20, offset: int = 0):
     try:
         response = supabase.table("books").select("""
             *,
-            profiles:author_id (id, full_name)
+            authors (id, full_name, full_name_la)
         """).range(offset, offset + limit - 1).execute()
 
         return {
@@ -81,7 +81,7 @@ async def get_book(book_id: str):
     try:
         response = supabase.table("books").select("""
             *,
-            profiles:author_id (id, full_name)
+            authors (id, full_name, full_name_la)
         """).eq("id", book_id).single().execute()
 
         if not response.data:

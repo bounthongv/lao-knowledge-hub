@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Render API</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Render API Test</h1>
+    <p>Testing your Lao Knowledge Hub API deployment...</p>
+    
+    <h2>Test Results:</h2>
+    <div id="results"></div>
+
+    <script>
+        // ⚠️ UPDATE THIS WITH YOUR RENDER URL
+        const RENDER_URL = 'https://lao-knowledge-hub-api.onrender.com';
+        
+        const resultsDiv = document.getElementById('results');
+        
+        async function testEndpoint(name, endpoint) {
+            const url = `${RENDER_URL}${endpoint}`;
+            console.log(`Testing ${name}: ${url}`);
+            
+            try {
+                const startTime = Date.now();
+                const response = await fetch(url);
+                const duration = Date.now() - startTime;
+                const data = await response.json();
+                
+                return {
+                    name,
+                    url,
+                    status: response.status,
+                    duration: `${duration}ms`,
+                    success: true,
+                    data: data
+                };
+            } catch (error) {
+                return {
+                    name,
+                    url,
+                    status: 'ERROR',
+                    duration: '-',
+                    success: false,
+                    data: error.message
+                };
+            }
+        }
+        
+        async function runTests() {
+            resultsDiv.innerHTML = '<p class="info">Running tests...</p>';
+            
+            const tests = [
+                { name: 'Health Check', endpoint: '/health' },
+                { name: 'Popular Books', endpoint: '/api/v1/books/popular' },
+                { name: 'Recommended Books', endpoint: '/api/v1/books/recommended' },
+                { name: 'All Books', endpoint: '/api/v1/books' },
+                { name: 'Categories', endpoint: '/api/v1/categories' },
+                { name: 'Universities', endpoint: '/api/v1/universities' }
+            ];
+            
+            let results = [];
+            for (const test of tests) {
+                const result = await testEndpoint(test.name, test.endpoint);
+                results.push(result);
+            }
+            
+            // Display results
+            let html = '<table border="1" cellpadding="10" style="border-collapse: collapse; width: 100%;">';
+            html += '<tr><th>Endpoint</th><th>Status</th><th>Duration</th><th>Result</th></tr>';
+            
+            for (const result of results) {
+                const statusClass = result.success ? 'success' : 'error';
+                const statusIcon = result.success ? '✅' : '❌';
+                
+                html += `<tr>
+                    <td><strong>${result.name}</strong><br><small>${result.url}</small></td>
+                    <td class="${statusClass}">${statusIcon} ${result.status}</td>
+                    <td>${result.duration}</td>
+                    <td><pre>${JSON.stringify(result.data, null, 2).substring(0, 200)}${JSON.stringify(result.data, null, 2).length > 200 ? '...' : ''}</pre></td>
+                </tr>`;
+            }
+            
+            html += '</table>';
+            resultsDiv.innerHTML = html;
+            
+            // Summary
+            const passed = results.filter(r => r.success).length;
+            const total = results.length;
+            
+            if (passed === total) {
+                resultsDiv.innerHTML = `<h2 class="success">✅ All tests passed! (${passed}/${total})</h2>` + resultsDiv.innerHTML;
+            } else {
+                resultsDiv.innerHTML = `<h2 class="error">❌ ${total - passed} test(s) failed (${passed}/${total} passed)</h2>` + resultsDiv.innerHTML;
+            }
+        }
+        
+        // Run tests on page load
+        runTests();
+    </script>
+</body>
+</html>
