@@ -30,15 +30,18 @@ supabase: Client = create_client(supabase_url, supabase_key)
 async def health_check():
     return {"status": "healthy", "message": "Lao Knowledge Hub API is running"}
 
+# Test endpoint to verify deployment
+@app.get("/api/v1/test")
+async def test_endpoint():
+    """Test endpoint to verify API is deployed"""
+    return {"message": "API is working!", "timestamp": "2026-03-06"}
+
 # Specific routes MUST come before parameterized routes
 @app.get("/api/v1/books/popular")
 async def get_popular_books(limit: int = 10):
     """Get most popular books"""
     try:
-        response = supabase.table("books").select("""
-            *,
-            authors (id, full_name, full_name_la)
-        """).order("view_count", desc=True).limit(limit).execute()
+        response = supabase.table("books").select("*, authors!author_id(id, full_name, full_name_la)").order("view_count", desc=True).limit(limit).execute()
 
         return {"books": response.data}
     except Exception as e:
@@ -50,7 +53,7 @@ async def get_recommended_books(limit: int = 10):
     try:
         response = supabase.table("books").select("""
             *,
-            authors (id, full_name, full_name_la)
+            authors:author_id(id, full_name, full_name_la)
         """).eq("is_featured", True).limit(limit).execute()
 
         return {"books": response.data}
@@ -63,7 +66,7 @@ async def get_books(limit: int = 20, offset: int = 0):
     try:
         response = supabase.table("books").select("""
             *,
-            authors (id, full_name, full_name_la)
+            authors:author_id(id, full_name, full_name_la)
         """).range(offset, offset + limit - 1).execute()
 
         return {
